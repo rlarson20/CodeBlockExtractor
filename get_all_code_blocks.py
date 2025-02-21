@@ -4,6 +4,7 @@
 
 import argparse
 import re
+from pathlib import Path
 
 # TODO: make it so that it does a check between input and attempted output; if they're the same, fail/don't write anything, not this code's job to write arbitrary streams for the user
 
@@ -22,10 +23,11 @@ def single_file(filename):
     # this is the single file way (default)
     with open(filename, "r") as f:
         text = f.read()
+        name = str(Path(f.name).with_suffix(''))
         code_blocks = get_all_code_blocks(text)
-        with open(f"{f.name}_all_blocks.md"):
+        with open(f"{name}_all_blocks.md", "w"):
             for i, block in enumerate(code_blocks, start=1):
-                f.write(f"{f.name} Code Block #{i}\n")
+                f.write(f"{name} Code Block #{i}\n")
                 f.write(("-" * 80) + "\n")
                 f.write(block)
                 f.write(("-" * 80) + "\n")
@@ -35,10 +37,11 @@ def multi_file(filename):
     # this is the multifile way
     with open(filename, "r") as f:
         text = f.read()
+        name = str(Path(f.name).with_suffix(''))
         code_blocks = get_all_code_blocks(text)
         for i, block in enumerate(code_blocks, start=1):
-            with open(f"{f.name}_block_{i}.md") as block_file:
-                block_file.write(f"{f.name} Code Block #{i}\n")
+            with open(f"{name}_block_{i}.md", "w") as block_file:
+                block_file.write(f"{name} Code Block #{i}\n")
                 block_file.write(("-" * 80) + "\n")
                 block_file.write(block)
                 block_file.write("-" * 80)
