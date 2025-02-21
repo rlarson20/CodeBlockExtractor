@@ -4,7 +4,6 @@
 
 import argparse
 import re
-import sys
 
 # TODO: make it so that it does a check between input and attempted output; if they're the same, fail/don't write anything, not this code's job to write arbitrary streams for the user
 
@@ -19,7 +18,37 @@ def get_all_code_blocks(text: str) -> str | list[str]:
     return blocks if blocks else text
 
 
+def single_file(filename):
+    # this is the single file way (default)
+    with open(filename, "r") as f:
+        text = f.read()
+        code_blocks = get_all_code_blocks(text)
+        with open(f"{f.name}_all_blocks.md"):
+            for i, block in enumerate(code_blocks, start=1):
+                f.write(f"{f.name} Code Block #{i}\n")
+                f.write(("-" * 80) + "\n")
+                f.write(block)
+                f.write(("-" * 80) + "\n")
+
+
+def multi_file(filename):
+    # this is the multifile way
+    with open(filename, "r") as f:
+        text = f.read()
+        code_blocks = get_all_code_blocks(text)
+        for i, block in enumerate(code_blocks, start=1):
+            with open(f"{f.name}_block_{i}.md") as block_file:
+                block_file.write(f"{f.name} Code Block #{i}\n")
+                block_file.write(("-" * 80) + "\n")
+                block_file.write(block)
+                block_file.write("-" * 80)
+
+
+def stream(): pass
+
+
 def main():
+    # instantiate parser object
     parser = argparse.ArgumentParser(
         prog="CodeBlockExtractor",
         description="Gets all code fences inside an output, and writes it to a markdown file. Useful for working with LLMs."
@@ -27,18 +56,12 @@ def main():
     parser.add_argument('filename')
     parser.add_argument('-m', '--multi-file', action='store_true',
                         help='Write each code block to a separate file.')
-    # this is the single file way (default)
-    with open(y, "r") as f:
-        text = f.read()
-        code_blocks = get_all_code_blocks(text)
-        with open(f"{f.name}_all_blocks.md")
-        # this is the multifile way
-    with open(x, "r") as f:
-        text = f.read()
-        code_blocks = get_all_code_blocks(text)
-        for i, block in enumerate(code_blocks, start=1):
-            with open(f"{f.name}_block_{i}.md") as block_file:
-                block_file.write(block)
+    # get arguments
+    args = parser.parse_args()
+    if args.multi_file:
+        multi_file(args.filename)
+    else:
+        single_file(args.filename)
 
 
 if __name__ == "__main__":
