@@ -6,8 +6,6 @@ import argparse
 import re
 from pathlib import Path
 
-# TODO: make it so that it does a check between input and attempted output; if they're the same, fail/don't write anything, not this code's job to write arbitrary streams for the user
-
 
 def get_all_code_blocks(text: str) -> str | list[str]:
     pattern = re.compile(
@@ -16,14 +14,19 @@ def get_all_code_blocks(text: str) -> str | list[str]:
     )
     matches = list(pattern.finditer(text))
     blocks = [match.group("code") for match in matches]
-    return blocks if blocks else text
+    if blocks:
+        return blocks
+    raise ValueError("No code blocks found in input.")
 
 
 def single_file(filename):
     # this is the single file way (default)
     with open(filename, "r") as f:
         text = f.read()
-        name = str(Path(f.name).with_suffix(''))
+        # gets all extensions: not entirely sure why useful but still
+        # src: https://stackoverflow.com/a/66335484
+        p = Path(filename)
+        name = p.with_name(p.name.split('.')[0]).with_suffix('')
         code_blocks = get_all_code_blocks(text)
         with open(f"{name}_all_blocks.md", "w"):
             for i, block in enumerate(code_blocks, start=1):
@@ -37,7 +40,8 @@ def multi_file(filename):
     # this is the multifile way
     with open(filename, "r") as f:
         text = f.read()
-        name = str(Path(f.name).with_suffix(''))
+        p = Path(filename)
+        name = p.with_name(p.name.split('.')[0]).with_suffix('')
         code_blocks = get_all_code_blocks(text)
         for i, block in enumerate(code_blocks, start=1):
             with open(f"{name}_block_{i}.md", "w") as block_file:
@@ -61,10 +65,13 @@ def main():
                         help='Write each code block to a separate file.')
     # get arguments
     args = parser.parse_args()
-    if args.multi_file:
-        multi_file(args.filename)
-    else:
-        single_file(args.filename)
+    try:
+        if args.multi_file:
+            multi_file(args.filename)
+        else:
+            single_file(args.filename)
+    except ValueError as e:
+        print(f"Here's the issue: {e}")
 
 
 if __name__ == "__main__":
