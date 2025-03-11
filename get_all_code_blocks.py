@@ -6,8 +6,15 @@ import argparse
 import re
 from pathlib import Path
 
+# import pyjq
 
-def get_all_code_blocks(text: str) -> str | list[str]:
+
+def load_provider_response(json_response: str):
+    import json
+    resp = json.loads(json_response)
+
+
+def get_all_code_blocks(text: str) -> list[str]:
     pattern = re.compile(
         r"""(?m)^(?P<fence>`{3,})(?P<lang>\w+)?\n(?P<code>.*?)^(?P=fence)[ ]*(?=\n|$)""",
         re.DOTALL,
@@ -28,12 +35,12 @@ def single_file(filename):
         p = Path(filename)
         name = p.with_name(p.name.split('.')[0]).with_suffix('')
         code_blocks = get_all_code_blocks(text)
-        with open(f"{name}_all_blocks.md", "w"):
+        with open(f"{name}_all_blocks.md", "w") as blocks_file:
             for i, block in enumerate(code_blocks, start=1):
-                f.write(f"{name} Code Block #{i}\n")
-                f.write(("-" * 80) + "\n")
-                f.write(block)
-                f.write(("-" * 80) + "\n")
+                blocks_file.write(f"{name} Code Block #{i}\n")
+                blocks_file.write(("-" * 80) + "\n")
+                blocks_file.write(block)
+                blocks_file.write(("-" * 80) + "\n")
 
 
 def multi_file(filename):
